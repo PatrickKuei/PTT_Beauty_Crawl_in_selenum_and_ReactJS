@@ -36,7 +36,12 @@ function checkDriver() {
 }
 
 // @@@@@@@@@@@@@@@@@@@@@@@@抓PTT BEAUTY
-async function pttCrawler() {
+
+// 要從第幾篇文章開始抓的變數,
+let i = null;
+
+async function pttCrawler(current, pageSize) {
+  console.log(`current is ${current}, page size is ${pageSize}`);
   if (!checkDriver()) {
     return;
   }
@@ -61,19 +66,14 @@ async function pttCrawler() {
 
   // 找到頁面中有所有文章連結
 
-  let isContinue = true;
-  let i = 0;
+  i = current;
   let allPics = [];
 
-  while (isContinue) {
-    isContinue = false;
-
+  while (i < current + pageSize) {
     const articleLinks = await driver.wait(
       until.elementsLocated(By.css("div.title a"))
     );
     if (articleLinks.length !== 0) {
-      isContinue = true;
-
       await articleLinks[i].click();
 
       // 找到文章內所有圖片連結
@@ -87,14 +87,13 @@ async function pttCrawler() {
       }
       await driver.navigate().back();
       await driver.sleep(500);
-      // i + 1來進入下一篇文章, 並確認是否是該頁最後一篇文章
+
+      // i + 1來進入下一篇文章
       i++;
-      if (i > articleLinks.length - 1) {
-        isContinue = false;
-      }
     }
   }
   console.log("///////////////////////loop end///////////////////////");
+  driver.quit();
 
   const result = allPics.filter((link) => link.includes("imgur"));
   return result;
@@ -111,7 +110,12 @@ ws.on("connection", (ws, req) => {
   ws.on("message", async (message) => {
     console.log("message", message);
 
-    const beautyPic = await pttCrawler();
-    ws.send(JSON.stringify(beautyPic));
+    const requestParams = JSON.parse(message);
+    const beautyPic = await pttCrawler(
+      parseInt(requestParams.current),
+      parseInt(requestParams.pageSize)
+    );
+    const responseJson = JSON.stringify({ pics: beautyPic, current: i });
+    ws.send(responseJson);
   });
 });

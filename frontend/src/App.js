@@ -22,15 +22,19 @@ const useStyle = makeStyles((theme) => ({
 function App() {
   const classes = useStyle();
   const [picState, setpicState] = useState([]);
+  const [pagination, setPagination] = useState({ current: 0, pageSize: 5 });
   const socket = new WebSocket("ws://localhost:8080/ws");
 
   const handleClick = () => {
-    socket.send("give me nice girl");
+    const requestParam = JSON.stringify(pagination);
+    socket.send(requestParam);
   };
 
   socket.onmessage = (e) => {
-    console.log(typeof e.data);
-    setpicState(JSON.parse(e.data));
+    const resData = JSON.parse(e.data);
+
+    setpicState(resData.pics);
+    setPagination((prev) => ({ ...prev, current: resData.current }));
   };
 
   useEffect(() => {
