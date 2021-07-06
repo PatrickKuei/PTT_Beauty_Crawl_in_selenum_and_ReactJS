@@ -11,11 +11,8 @@ import {
   Backdrop,
   CardActionArea,
   LinearProgress,
-  FormControl,
-  FormLabel,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
+  Slider,
+  Typography,
 } from "@material-ui/core";
 
 const useStyle = makeStyles((theme) => ({
@@ -24,6 +21,9 @@ const useStyle = makeStyles((theme) => ({
   },
   button: {
     margin: "30px 0",
+  },
+  slider: {
+    width: "50vw",
   },
   media: {
     height: 0,
@@ -84,8 +84,26 @@ function App() {
     setImgModalVisible(true);
   };
 
-  const handlePageSizeChange = (e) => {
-    setPagination((prev) => ({ ...prev, pageSize: parseInt(e.target.value) }));
+  const handlePageSizeChange = (e, newValue) => {
+    setPagination((prev) => ({ ...prev, pageSize: newValue }));
+  };
+
+  const valueText = (value) => {
+    const label = [];
+    for (let i = 0; i < 7; i++) {
+      if (i === 0) {
+        label.push("a little");
+      } else if (i === 6) {
+        label.push("GIVE ME FUCKING ALL!!!");
+      } else {
+        let bangMark = "";
+        for (let j = 0; j < i; j++) {
+          bangMark += "!";
+        }
+        label.push(`I want more${bangMark}`);
+      }
+    }
+    return label[value / 5];
   };
 
   return (
@@ -108,32 +126,19 @@ function App() {
         ))}
       </Grid>
       <br />
-
-      <FormControl component="fieldset">
-        <FormLabel component="legend">How many Nai Zi you want?</FormLabel>
-        <RadioGroup
-          aria-label="pageSize"
-          name="pageSize"
-          value={pagination.pageSize}
-          onChange={handlePageSizeChange}
-        >
-          <FormControlLabel
-            value={1}
-            control={<Radio />}
-            label="1 group of Nai Zi"
-          />
-          <FormControlLabel
-            value={3}
-            control={<Radio />}
-            label="3 groups of Nai Zi"
-          />
-          <FormControlLabel
-            value={5}
-            control={<Radio />}
-            label="5 groups of Nai Zi"
-          />
-        </RadioGroup>
-      </FormControl>
+      <Typography>How many Nai Zi you want?</Typography>
+      <Slider
+        className={classes.slider}
+        defaultValue={0}
+        onChangeCommitted={handlePageSizeChange}
+        aria-labelledby="discrete-slider"
+        valueLabelDisplay="auto"
+        step={5}
+        marks
+        min={0}
+        max={30}
+        valueLabelFormat={valueText}
+      />
       <br />
 
       {isProgressing ? (

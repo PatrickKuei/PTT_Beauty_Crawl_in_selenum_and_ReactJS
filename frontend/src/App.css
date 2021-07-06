@@ -6,3 +6,13 @@
   height: 10px !important;
   border-radius: 5px;
 }
+.PrivateValueLabel-circle-10 {
+  width: 100px !important;
+  height: 100px !important;
+}
+.MuiSlider-valueLabel {
+  left: calc(-50% - 39px) !important;
+}
+.PrivateValueLabel-offset-9 {
+  top: -104px !important;
+}

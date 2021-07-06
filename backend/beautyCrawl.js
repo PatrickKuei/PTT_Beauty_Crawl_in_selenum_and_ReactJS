@@ -20,7 +20,7 @@ exports.beautyCrawl = async function (current, pageSize, ws) {
   const checkAdult = await driver.wait(
     until.elementLocated(By.css("button[name='yes']"))
   );
-  checkAdult.click();
+  await checkAdult.click();
   await ws.send(JSON.stringify({ isCompleted: false, progress: 30 }));
 
   // 搜尋爆文
@@ -30,10 +30,31 @@ exports.beautyCrawl = async function (current, pageSize, ws) {
   await searchInput.sendKeys("recommend:99", webdriver.Key.ENTER);
   await ws.send(JSON.stringify({ isCompleted: false, progress: 60 }));
 
-  let i = current; // 要從第幾篇文章開始抓的變數
-  let allPics = [];
+  let currentAtPage = current % 20; // 該頁第幾篇開始抓
+  let pageNumber = Math.floor(current / 20); // 第幾頁
 
-  while (i < current + pageSize) {
+  // 跳轉到目標頁
+  while (pageNumber > 0) {
+    const prevPage = await driver.wait(
+      until.elementLocated(By.css("div.btn-group-paging a:nth-child(2)"))
+    );
+    await prevPage.click();
+    pageNumber--;
+  }
+
+  let i = currentAtPage; // 用i來計算
+  let allPics = [];
+  let max = current + pageSize;
+
+  while (current < max) {
+    if (i >= 20) {
+      const prevPage = await driver.wait(
+        until.elementLocated(By.css("div.btn-group-paging a:nth-child(2)"))
+      );
+      await prevPage.click();
+      i -= 20;
+    }
+
     // 找到頁面中有所有文章連結
     const articleLinks = await driver.wait(
       until.elementsLocated(By.css("div.title a"))
@@ -56,6 +77,7 @@ exports.beautyCrawl = async function (current, pageSize, ws) {
 
       // i + 1來進入下一篇文章
       i++;
+      current++;
     }
   }
   console.log("///////////////////////loop end///////////////////////");
