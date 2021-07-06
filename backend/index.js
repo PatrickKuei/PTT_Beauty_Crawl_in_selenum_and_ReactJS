@@ -13,9 +13,11 @@ ws.on("connection", (ws, req) => {
     const requestParams = JSON.parse(message);
     const beautyResult = await beautyCrawl(
       parseInt(requestParams.current),
-      parseInt(requestParams.pageSize)
+      parseInt(requestParams.pageSize),
+      ws
     );
     const responseJson = JSON.stringify({
+      isCompleted: true,
       pics: beautyResult.urls,
       current: beautyResult.current,
     });
