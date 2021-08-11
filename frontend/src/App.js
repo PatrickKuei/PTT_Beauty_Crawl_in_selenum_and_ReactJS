@@ -14,6 +14,7 @@ import {
   Slider,
   Typography,
 } from "@material-ui/core";
+import axios from "axios";
 
 const useStyle = makeStyles((theme) => ({
   root: {
@@ -43,34 +44,21 @@ const useStyle = makeStyles((theme) => ({
 function App() {
   const classes = useStyle();
   const [picState, setpicState] = useState([]);
-  const [pagination, setPagination] = useState({ current: 0, pageSize: 1 });
-  const socket = new WebSocket("ws://localhost:8080/ws");
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 1 });
   const [isProgressing, setIsProgressing] = useState(false);
 
   const handleCrawlClick = () => {
     setIsProgressing(true);
-    const requestParam = JSON.stringify(pagination);
-    socket.send(requestParam);
+    axios
+      .get("http://localhost:8000/polls/", { params: pagination })
+      .then((res) => {
+        console.log(res);
+        setpicState(res.data);
+        setIsProgressing(false);
+      });
   };
 
   const [crawlProgress, setCrawlProgress] = useState(0);
-
-  socket.onmessage = (e) => {
-    const resData = JSON.parse(e.data);
-
-    if (resData.isCompleted) {
-      setIsProgressing(false);
-      setCrawlProgress(0);
-      setpicState((prev) => [...prev, ...resData.pics]);
-      setPagination((prev) => ({ ...prev, current: resData.current }));
-    } else {
-      setCrawlProgress(resData.progress);
-    }
-  };
-
-  useEffect(() => {
-    socket.onopen = () => console.log("ws has opened");
-  }, []);
 
   const [imgModalVisible, setImgModalVisible] = useState(false);
   const modalImgUrl = useRef();
@@ -112,7 +100,7 @@ function App() {
       <h4>Wish the Whole World Peace</h4>
       <Grid container spacing={1}>
         {picState.map((picUrl) => (
-          <Grid item xs={3} key={picUrl}>
+          <Grid item xs={3} key={new Date().getTime()}>
             <CardActionArea onClick={handleImgClick}>
               <Card className={classes.root}>
                 <CardMedia
