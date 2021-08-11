@@ -1,2 +1,3 @@
 node_modules/
 backend/chromedriver.exe
+django test/mysite/db.sqlite3
