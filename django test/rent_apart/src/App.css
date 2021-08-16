@@ -1,3 +1,21 @@
 .main_header {
   height: 25vh !important;
+  transition: 0.5s;
+}
+.main_header.active {
+  height: 47vh !important;
+}
+.ant-carousel,
+.ant-carousel div,
+.ant-carousel div img {
+  height: 100%;
+}
+.ant-select-selection-item-remove span {
+  color: gray !important;
+}
+.ant-menu-inline-collapsed .ant-menu-item {
+  height: 40px !important;
+}
+.ant-menu-item {
+  height: fit-content !important;
 }
