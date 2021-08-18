@@ -8,6 +8,8 @@ import {
   Spin,
   Select,
   Button,
+  Checkbox,
+  Slider,
 } from "antd";
 import {
   DesktopOutlined,
@@ -39,10 +41,18 @@ function App() {
 
   const handleGetApartListClick = () => {
     setApartList((prev) => ({ ...prev, isLoading: true }));
-    axios.get("http://localhost:8000/rent_apart/").then((res) => {
-      console.log(res.data);
-      setApartList({ list: res.data, isLoading: false });
-    });
+    let params = {
+      selectedSections: selectedSections.join(","),
+      selectedCity: selectedCity.join(","),
+    };
+    axios
+      .get("http://localhost:8000/rent_apart/", {
+        params,
+      })
+      .then((res) => {
+        console.log(res.data);
+        setApartList({ list: res.data, isLoading: false });
+      });
   };
 
   const [isCarouselActive, setIsCarouselActive] = useState(false);
@@ -134,13 +144,17 @@ function App() {
     );
   };
 
-  const handleListSort = () => {
+  const handleListSort = (e) => {
+    let { value } = e.currentTarget.attributes["sort-type"];
+    let isAsc = value === "ascend" ? 1 : -1;
+
     setApartList((prev) => ({
       ...prev,
       list: prev.list.sort(
         (a, b) =>
-          parseInt(a.apart_price.split(",").join("")) -
-          parseInt(b.apart_price.split(",").join(""))
+          (parseInt(a.apart_price.split(",").join("")) -
+            parseInt(b.apart_price.split(",").join(""))) *
+          isAsc
       ),
     }));
   };
@@ -149,6 +163,45 @@ function App() {
     setIsCarouselActive(false);
     setCurrentImgs({ isLoading: false, list: [] });
   };
+
+  const [selectedCity, setSelectedCity] = useState(["1"]);
+
+  const handleCityChange = (selectedOptions) => {
+    setSelectedCity(selectedOptions);
+  };
+
+  const cityOptions = [
+    { label: "台北市", value: "1" },
+    { label: "新北市", value: "3" },
+  ];
+
+  const [priceRange, setPriceRange] = useState([15000, 25000]);
+  const handlePriceRangeChange = (v) => {
+    setPriceRange(v);
+  };
+
+  const roomOptions = [
+    { label: "1房", value: "1" },
+    { label: "2房", value: "2" },
+    { label: "3房", value: "3" },
+    { label: "4房", value: "4" },
+    { label: "5房", value: "5" },
+  ];
+  const [selectedRoomType, setSelectedRoomType] = useState(["1"]);
+  const handleRoomOptionChange = (v) => {
+    setSelectedRoomType(v);
+  };
+
+  const rentedTypeOptions = [
+    { label: "整層", value: "1" },
+    { label: "套房", value: "2" },
+    { label: "分租套房", value: "3" },
+  ];
+  const [selectedRentedType, setSelectedRentedType] = useState(["1"]);
+  const handleRentedTypeOptionChnage = (v) => {
+    setSelectedRentedType(v);
+  };
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider
@@ -160,18 +213,48 @@ function App() {
         <div className="logo" />
         <Menu theme="dark" defaultSelectedKeys={["1"]} mode="inline">
           <Menu.Item key="1" icon={<PieChartOutlined />}>
+            <Checkbox.Group
+              options={cityOptions}
+              onChange={handleCityChange}
+              defaultValue={["1"]}
+            />
+          </Menu.Item>
+          <Menu.Item key="2" icon={<PieChartOutlined />}>
             <Select
               mode="multiple"
-              value={selectedSections}
               onChange={handleSectionChange}
               style={{ width: "100%" }}
             >
               {filteredSectionOptions.map((section) => (
-                <Select.Option key={section.id} value={section.id}>
+                <Select.Option key={section.id} value={section.value}>
                   {section.id}
                 </Select.Option>
               ))}
             </Select>
+          </Menu.Item>
+          <Menu.Item key="3" icon={<PieChartOutlined />}>
+            <Checkbox.Group
+              options={rentedTypeOptions}
+              onChange={handleRentedTypeOptionChnage}
+              defaultValue={["1"]}
+            />
+          </Menu.Item>
+          <Menu.Item key="4" icon={<PieChartOutlined />}>
+            <Checkbox.Group
+              options={roomOptions}
+              onChange={handleRoomOptionChange}
+              defaultValue={["1"]}
+            />
+          </Menu.Item>
+          <Menu.Item key="5" icon={<PieChartOutlined />}>
+            <Slider
+              range
+              defaultValue={priceRange}
+              step={1000}
+              max={30000}
+              min={5000}
+              onAfterChange={handlePriceRangeChange}
+            />
           </Menu.Item>
         </Menu>
       </Sider>
@@ -247,7 +330,12 @@ function App() {
               >
                 Clear
               </Button>
-              <Button onClick={handleListSort}>Sort</Button>
+              <Button onClick={handleListSort} sort-type="ascend">
+                價格少至多
+              </Button>
+              <Button onClick={handleListSort} sort-type="descend">
+                價格多至少
+              </Button>
             </>
           ) : (
             ""
@@ -262,12 +350,18 @@ function App() {
               <Spin />
             ) : apartList.list.length > 0 ? (
               apartList.list.map((apart) => (
-                <Col key={apart.id} style={{ width: 300 }}>
+                <Col key={apart.id} span={6}>
                   <Card
                     onClick={() => handleCardClick(apart)}
                     style={{ height: "100%" }}
                     hoverable
-                    cover={<img alt="example" src={apart.apart_img} />}
+                    cover={
+                      <img
+                        alt="example"
+                        className="apart_small_img"
+                        src={apart.apart_img}
+                      />
+                    }
                   >
                     <Card.Meta
                       title={apart.room + "|" + apart.apart_price}

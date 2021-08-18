@@ -19,3 +19,9 @@
 .ant-menu-item {
   height: fit-content !important;
 }
+.ant-checkbox-wrapper span {
+  color: white;
+}
+.ant-card-meta-title {
+  font-size: 36px !important;
+}
